@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/VaolEr/AssistantCSGOBot.svg?branch=master)](https://travis-ci.com/VaolEr/AssistantCSGOBot)
+[![codecov](https://codecov.io/gh/VaolEr/AssistantCSGOBot/branch/master/graph/badge.svg?token=sPv7X83iov)](https://codecov.io/gh/VaolEr/AssistantCSGOBot)
 ## AssistantCSGOBot
 
 This project is based on [Abios ESPORTS API](https://abiosgaming.com/) - the best api with the most detailed data and broadest coverage of matches!
