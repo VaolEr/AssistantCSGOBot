@@ -17,6 +17,8 @@ before_install:
 install:
   - mvn -N io.takari:maven:wrapper
   - "./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
+before_script:
+  - psql -c 'create database assistantcsgobot;' -U postgres
 script:
   - mvn clean package
 after_success:
