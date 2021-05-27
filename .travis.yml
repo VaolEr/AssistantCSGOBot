@@ -4,18 +4,20 @@ branches:
   - dev
 language: java
 jdk:
-- openjdk11
+  - openjdk11
+services:
+  - postgresql
 before_install:
   # Change directory to encrypted file
-- cd $TRAVIS_BUILD_DIR/src/main/resources
+  - cd $TRAVIS_BUILD_DIR/src/main/resources
   # Decrypt file
-- openssl aes-256-cbc -K $encrypted_58a5abdecf96_key -iv $encrypted_58a5abdecf96_iv -in application-dev.properties.enc -out application-dev.properties -d
+  - openssl aes-256-cbc -K $encrypted_58a5abdecf96_key -iv $encrypted_58a5abdecf96_iv -in application-dev.properties.enc -out application-dev.properties -d
   # Go back to project directory
-- cd $TRAVIS_BUILD_DIR
+  - cd $TRAVIS_BUILD_DIR
 install:
-- mvn -N io.takari:maven:wrapper
-- "./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
+  - mvn -N io.takari:maven:wrapper
+  - "./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
 script:
-- mvn clean package
+  - mvn clean package
 after_success:
-- bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash)
