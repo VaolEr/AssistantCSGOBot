@@ -13,12 +13,16 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
+import static com.vaoler.assistantcsgobot.util.BotTeamsUtil.getBotTeamFromTeamTo;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AbiosTeamsInfoService {
     //NaVi = 904
     private final RestTemplate restTemplate;
+
+    private final BotTeamsService botTeamsService;
 
     @Value("${app.abios.api.base_path}")
     private String ABIOSGAMING_API_PATH;
@@ -53,6 +57,7 @@ public class AbiosTeamsInfoService {
         );
         TeamTo[] teamTos = Objects.requireNonNull(response.getBody());
         for (TeamTo team:teamTos) {
+            log.info(botTeamsService.create(team).toString());
             log.info(team.toString());
         }
         log.info(response.getStatusCode().toString());
