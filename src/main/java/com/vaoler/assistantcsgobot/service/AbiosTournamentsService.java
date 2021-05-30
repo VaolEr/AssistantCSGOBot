@@ -22,6 +22,7 @@ import java.util.Objects;
 public class AbiosTournamentsService {
 
     private final RestTemplate restTemplate;
+    private final BotEventsService botEventsService;
 
     @Value("${app.abios.api.base_path}")
     private String ABIOSGAMING_API_PATH;
@@ -57,6 +58,7 @@ public class AbiosTournamentsService {
         TournamentTo[] tournamentTos = Objects.requireNonNull(response.getBody());
         for (TournamentTo tournament:tournamentTos) {
             log.info(tournament.toString());
+            log.info(botEventsService.create(tournament).toString());
         }
         log.info(response.getStatusCode().toString());
     }
