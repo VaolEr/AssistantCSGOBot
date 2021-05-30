@@ -1,10 +1,8 @@
 package com.vaoler.assistantcsgobot.service;
 
-import com.vaoler.assistantcsgobot.dto.abiosTo.TeamTo;
 import com.vaoler.assistantcsgobot.dto.abiosTo.TournamentTo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jvnet.hk2.annotations.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

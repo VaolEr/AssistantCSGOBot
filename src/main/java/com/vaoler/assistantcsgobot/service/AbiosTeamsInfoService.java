@@ -13,8 +13,6 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
-import static com.vaoler.assistantcsgobot.util.BotTeamsUtil.getBotTeamFromTeamTo;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
