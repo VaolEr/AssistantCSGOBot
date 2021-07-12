@@ -1,6 +1,6 @@
 package com.vaoler.assistantcsgobot.service;
 
-import com.vaoler.assistantcsgobot.dto.abiosTo.TeamTo;
+import com.vaoler.assistantcsgobot.dto.TeamTo;
 import com.vaoler.assistantcsgobot.model.bot.BotTeam;
 import com.vaoler.assistantcsgobot.repository.BotTeamsRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class BotTeamsService {
     @Transactional
     public BotTeam update(TeamTo teamTo){
         BotTeam updatedBotTeam = getBotTeamFromTeamTo(teamTo);
-        assureIdConsistent(updatedBotTeam, teamTo.getId());
+        //assureIdConsistent(updatedBotTeam, teamTo.getId());
         return botTeamsRepository.save(updatedBotTeam);
     }
 
