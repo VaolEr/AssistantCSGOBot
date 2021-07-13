@@ -12,11 +12,20 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
-public class BotTeam extends AbstractNamedEntity {
+public class Team extends AbstractNamedEntity {
+
+    @Column(name = "api_id")
+    String apiId;
+
+    @Column(name = "country")
+    String country;
+
+    @Column(name = "country_code")
+    String countryCode;
 
     @Column(name = "abbreviation")
     String abbreviation;
 
-    @OneToMany(mappedBy = "botTeam", cascade = CascadeType.ALL)
-    private Set<BotUserTeam> botUserTeams = new HashSet<>();
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
+    private Set<UserTeam> userTeams = new HashSet<>();
 }

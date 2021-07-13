@@ -1,6 +1,5 @@
 package com.vaoler.assistantcsgobot.util;
 
-import com.vaoler.assistantcsgobot.model.bot.BotEvent;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
