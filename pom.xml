@@ -20,6 +20,7 @@
         <java.version>11</java.version>
         <telegrambots.version>5.1.1</telegrambots.version>
         <postgresql.version>42.2.20</postgresql.version>
+        <guava.version>30.1.1-jre</guava.version>
     </properties>
     <dependencies>
         <dependency>
@@ -80,6 +81,13 @@
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!--    GUAVA   -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
 
     </dependencies>

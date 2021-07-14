@@ -27,4 +27,5 @@ public class TeamTo {
     @NotBlank
     private String abbreviation;                                // Team abbreviation
 
+    private String qualifier;
 }
