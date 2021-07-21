@@ -1,5 +1,11 @@
 package com.vaoler.assistantcsgobot.bot;
 
+import com.vaoler.assistantcsgobot.bot.keyboards.TeamsInlineKeyboard;
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.CallbackQueryParser;
+import com.vaoler.assistantcsgobot.model.bot.User;
+import com.vaoler.assistantcsgobot.repository.TeamsRepository;
+import com.vaoler.assistantcsgobot.service.LocaleMessageService;
+import com.vaoler.assistantcsgobot.service.UsersService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,18 +16,27 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AssistantCSGOBot extends TelegramWebhookBot {
 
-    //private final AbiosAuthenticationService abiosAuthenticationService;
+    private final LocaleMessageService localeMessageService;
+    private final UsersService usersService;
+    private final CallbackQueryParser callbackQueryParser;
+    private final TeamsRepository teamsRepository;
+    private final TeamsInlineKeyboard teamsInlineKeyboard;
+
 
     // This is telegram bot Username
     @Value("${app.bots.usernames.assistant-csgo-telegram-bot-Username}")
@@ -33,6 +48,12 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
 
     @Value("${api.bots.webhookPaths.assistant-csgo-telegram-bot-Path}")
     private String botPath;
+
+    @Value("${app.sendMessage.empty}")
+    private String emptySendMessageText;
+
+    @Value("${app.sendMessage.NoResultsForTeam}")
+    private String noResultsForTeamSendMessageText;
 
     @Override
     public String getBotUsername() {
@@ -63,28 +84,171 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
             callbackQuery = update.getCallbackQuery();
         }
 
+
+
+        if (callbackQuery != null && message == null) {
+            log.info("New callbackQuery from User: {} with data: {}", update.getCallbackQuery().getFrom().getUserName(),
+                    update.getCallbackQuery().getData());
+
+
+            return prepareSendMessageAccordingToInputCallbackQueryType(update.getCallbackQuery(), chatId);
+
+        } else {
+
+            String userName;
+            boolean isBot;
+            String messageDateTime;
+            String messageText;
+
+            userName = message.getFrom().getUserName();
+            isBot = message.getFrom().getIsBot();
+            messageDateTime = LocalDateTime.ofEpochSecond(message.getDate(), 0, ZoneOffset.ofHours(3)).format(dateTimeFormatter);
+            messageText = message.getText();
+
+            log.info("New message from User: {}, isBot: {}, chatId: {}, date: {}, with text: {}",
+                    userName,
+                    isBot,
+                    chatId,
+                    messageDateTime,
+                    messageText);
+
+            return prepareSendMessageAnswerBasedOnInputMessageText(messageText, chatId);
+        }
+    }
+
+    private SendMessage prepareSendMessageAnswerBasedOnInputMessageText(String messageText, String chatId) {
+
         SendMessage sendMessage = new SendMessage();
 
-        String userName;
-        boolean isBot;
-        String messageDateTime;
-        String messageText;
+        switch (Objects.requireNonNull(messageText)) {
 
-        userName = message.getFrom().getUserName();
-        isBot = message.getFrom().getIsBot();
-        messageDateTime = LocalDateTime.ofEpochSecond(message.getDate(), 0, ZoneOffset.ofHours(3)).format(dateTimeFormatter);
-        messageText = message.getText();
+            case ("/start"):
+                //TODO create new method name!
+                return getSendMessageAfterUserValidation(chatId);
+            case ("/help"):
+            case ("help"):
+                log.debug("Help was asked");
+                return SendMessage.builder()
+                        .chatId(chatId)
+                        .text(localeMessageService.getMessage("bot.messages.help_message"))
+                        .build();
+//            case ("/kbd"):
+//            case ("KBD"):
+//                log.debug("Reply keyboard was asked.");
+//                return telegramHLTVBotReplyKeyboard.sendReplyKeyBoardMessage(chatId);
+//            //break;
+            case ("/teams"):
+            case ("Teams"):
+                log.debug("Inline teams keyboard was asked.");
+                return teamsInlineKeyboard.sendInlineKeyBoardMessage(chatId);
+//            case ("/news"):
+//            case ("News"):
+//                log.debug("News are requested.");
+//
+//                List<HltvApiNews> newsList = hltvApiNewsService.getNews(); // get list of News
+//
+//                for (HltvApiNews news : newsList) {
+//                    try {
+//                        execute(hltvApiNewsService.prepareNewsMessage(message, news));
+//                    } catch (TelegramApiException e) {
+//                        log.info(e.fillInStackTrace().toString());
+//                        //TODO add return there with message for user about error???
+//                    }
+//                }
+//
+//                return SendMessage.builder()
+//                        .chatId(chatId)
+//                        .text("This is all news what I found!")
+//                        .build();
+//            case ("/results"):
+//            case ("Results"):
+//                log.debug("Results are requested.");
+//
+//                List<HltvApiResults> resultsList = hltvApiResultsService.getResults();
+//
+//                for (HltvApiResults result : resultsList) {
+//                    try {
+//                        execute(hltvApiResultsService.prepareResultsMessage(message, result));
+//                    } catch (TelegramApiException e) {
+//                        log.info(e.fillInStackTrace().toString());
+//                    }
+//                }
+//
+//                return SendMessage.builder()
+//                        .chatId(chatId)
+//                        .text("This is all what I found!")
+//                        .build();
 
-        log.info("New message from User: {}, isBot: {}, chatId: {}, date: {}, with text: {}",
-                userName,
-                isBot,
-                chatId,
-                messageDateTime,
-                messageText);
+            default:
+                sendMessage.setChatId(chatId);
+                sendMessage.setText(localeMessageService.getMessage("bot.commands.unknown_command"));
+                return sendMessage;
+        }
+    }
 
-        sendMessage.setChatId(chatId);
-        sendMessage.setText("Bot is still like a 4 years ol child. Be passions, please.");
-        return sendMessage;
+    private SendMessage getSendMessageAfterUserValidation(String chatId) {
+        Optional<User> botUser = usersService.getUserByTelegramChatId(Long.parseLong(chatId));
+        if(botUser.isEmpty()){
+            User newUser = new User();
+            newUser.setTelegramChatId(Long.parseLong(chatId));
+            usersService.create(newUser);
+            log.info("New bot user was created!");
+            return SendMessage.builder()
+                    .chatId(chatId)
+                    .text(localeMessageService.getMessage("bot.messages.start_command_message_new_user"))
+                    .build();
+        }
+        return SendMessage.builder()
+                .chatId(chatId)
+                .text(localeMessageService.getMessage("bot.messages.start_command_message_old_user"))
+                .build();
+    }
+
+    private SendMessage prepareSendMessageAccordingToInputCallbackQueryType(CallbackQuery callbackQuery, String chatId) {
+
+        String callbackQueryType = callbackQuery.getData().split("_")[0];
+        //TODO add check for single word callback_queries!
+        String callbackTeamName;
+        try {
+            callbackTeamName = callbackQuery.getData().split("_")[1];
+        } catch (Exception e) {
+            log.info(e.getMessage());
+            callbackTeamName = "";
+        }
+
+        switch (callbackQueryType) {
+            case ("TEAMRESULTS"):
+                log.info("{} Results are requested.", callbackTeamName);
+                List<SendMessage> messages = callbackQueryParser.processCallbackQueryMultiAnswer(callbackQuery);
+
+                boolean allMessagesAreEmpty = true;
+
+                for (SendMessage sendMessage1 : messages) {
+                    try {
+                        if (!sendMessage1.getText().equals(emptySendMessageText)) {
+                            allMessagesAreEmpty = false;
+                            execute(sendMessage1);
+                        }
+                    } catch (TelegramApiException | NullPointerException e) {
+                        log.info(e.fillInStackTrace().toString());
+                    }
+                }
+
+                if (allMessagesAreEmpty) {
+                    return SendMessage.builder()
+                            .chatId(chatId)
+                            .text(noResultsForTeamSendMessageText)
+                            .build();
+                }
+
+                return SendMessage.builder()
+                        .chatId(chatId)
+                        .text("This is all results what I found for team " + " !")
+                        .build();
+
+            default:
+                return callbackQueryParser.processCallbackQuery(callbackQuery);
+        }
     }
 
     @Override

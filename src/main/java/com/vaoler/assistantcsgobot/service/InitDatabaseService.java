@@ -24,7 +24,8 @@ public class InitDatabaseService {
     private final SportradarService sportradarService;
     private final TeamsRepository teamsRepository;
 
-    @PostConstruct
+    //TODO init database
+    //@PostConstruct
     public void initTeamsTable(){
         List<TeamTo> teamTos = sportradarService.sportradarGetTeamsList();
         for(TeamTo teamTo:teamTos){
@@ -35,7 +36,7 @@ public class InitDatabaseService {
         }
     }
 
-    @PostConstruct
+    //@PostConstruct
     public void testGetDailySchedule(){
 //        DailyScheduleTo dailyScheduleToForToday = sportradarService.getDailyScheduleToForToday();
 //        for(SportEventTo event: dailyScheduleToForToday.getSportEvents()){

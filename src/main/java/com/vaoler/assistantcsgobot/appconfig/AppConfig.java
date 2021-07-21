@@ -6,14 +6,26 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class AppConfig {
+
+    @Bean
+    public MessageSource messageSource() {
+        ReloadableResourceBundleMessageSource messageSource
+                = new ReloadableResourceBundleMessageSource();
+
+        messageSource.setBasename("classpath:messages");
+        messageSource.setDefaultEncoding("UTF-8");
+        return messageSource;
+    }
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
@@ -29,7 +41,7 @@ public class AppConfig {
             protected Cache createConcurrentMapCache(String name) {
                 return new ConcurrentMapCache(name,
                         CacheBuilder.newBuilder()
-                                .refreshAfterWrite(10, TimeUnit.SECONDS)
+                                .refreshAfterWrite(15, TimeUnit.SECONDS)
                                 .build().asMap(),
                         false);
             }

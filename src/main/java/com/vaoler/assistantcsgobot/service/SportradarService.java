@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -54,6 +55,7 @@ public class SportradarService {
         return teamTos;
     }
 
+    @Cacheable("dailyScheduleByDate")
     public DailyScheduleTo getDailyScheduleToByDate(Calendar eventsDate){
         var simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String date = simpleDateFormat.format(eventsDate.getTime());
@@ -75,7 +77,8 @@ public class SportradarService {
         return webClientResponse;
     }
 
-    @Cacheable("dailyScheduleForToday")
+
+    @Scheduled(cron = "0 0 0 * * *")                     // every day at 00:00 update the daily schedule 0 0 0 * * *
     public DailyScheduleTo getDailyScheduleToForToday(){
         var simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String date = simpleDateFormat.format(Calendar.getInstance().getTime());
@@ -116,65 +119,4 @@ public class SportradarService {
 
         return webClientResponse;
     }
-
-//    public void abiosGetTeamRosters(Integer id){
-//        ENDPOINT_URL = SPORTRADAR_API_PATH + ENDPOINT_TEAMS;
-//
-//        Formatter formatter = new Formatter();
-//        formatter.format("/%d/rosters", id);
-//        String teamId  = formatter.toString();
-//
-//        log.info("Abios get rosters for team " + teamId);
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-//        //headers.set("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:49.0) Gecko/20100101 Firefox/49.0");
-//        headers.set(ABIOS_SECRET_HEADER_NAME, ABIOS_SECRET_KEY);
-//        HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-//
-//        log.info(ENDPOINT_URL+teamId);
-//
-//        ResponseEntity<RosterTo[]> response = restTemplate.exchange(
-//                ENDPOINT_URL + teamId,
-//                HttpMethod.GET,
-//                entity,
-//                RosterTo[].class
-//        );
-//        RosterTo[] rosterTos = Objects.requireNonNull(response.getBody());
-//        for (RosterTo rosterTo:rosterTos) {
-//            log.info(rosterTo.toString());
-//        }
-//        log.info(response.getStatusCode().toString());
-//    }
-
-//    public void abiosGetTeamSeries(Integer id){
-//        ENDPOINT_URL = SPORTRADAR_API_PATH + ENDPOINT_TEAMS;
-//
-//        Formatter formatter = new Formatter();
-//        formatter.format("/%d/series", id);
-//        String teamId  = formatter.toString();
-//
-//        log.info("Abios get series for team " + teamId);
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-//        //headers.set("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:49.0) Gecko/20100101 Firefox/49.0");
-//        headers.set(ABIOS_SECRET_HEADER_NAME, ABIOS_SECRET_KEY);
-//        HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-//
-//        log.info(ENDPOINT_URL+teamId);
-//
-//        ResponseEntity<SerieTo[]> response = restTemplate.exchange(
-//                ENDPOINT_URL + teamId,
-//                HttpMethod.GET,
-//                entity,
-//                SerieTo[].class
-//        );
-//        SerieTo[] serieTos = Objects.requireNonNull(response.getBody());
-//        for (SerieTo serieTo:serieTos) {
-//            log.info(serieTo.toString());
-//        }
-//        log.info(response.getStatusCode().toString());
-//    }
-
 }

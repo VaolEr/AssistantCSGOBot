@@ -4,15 +4,15 @@ import com.vaoler.assistantcsgobot.dto.TeamTo;
 import com.vaoler.assistantcsgobot.model.bot.Team;
 import com.vaoler.assistantcsgobot.repository.TeamsRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.vaoler.assistantcsgobot.util.TeamsUtil.getTeamFromTeamTo;
 import static com.vaoler.assistantcsgobot.util.ValidationUtil.*;
 
-@Component //TODO change to service annotation
+@Service
 @RequiredArgsConstructor
-public class BotTeamsService {
+public class TeamsService {
 
     private final TeamsRepository teamsRepository;
 
@@ -21,16 +21,20 @@ public class BotTeamsService {
                 addMessageDetails(Team.class.getSimpleName(), teamId));
     }
 
+    public Team getTeamByName(String teamName){
+        return checkNotFound(teamsRepository.getTeamByNameIsContainingIgnoreCase(teamName),
+                addMessageDetails(Team.class.getSimpleName(), teamName));
+    }
+
     @Transactional
     public Team create(TeamTo teamTo){
-        Team newTeam = getTeamFromTeamTo(teamTo);
+        var newTeam = getTeamFromTeamTo(teamTo);
         return teamsRepository.save(newTeam);
     }
 
     @Transactional
     public Team update(TeamTo teamTo){
-        Team updatedTeam = getTeamFromTeamTo(teamTo);
-        //assureIdConsistent(updatedBotTeam, teamTo.getId());
+        var updatedTeam = getTeamFromTeamTo(teamTo);
         return teamsRepository.save(updatedTeam);
     }
 
