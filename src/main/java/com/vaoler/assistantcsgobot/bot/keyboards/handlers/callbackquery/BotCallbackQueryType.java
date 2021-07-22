@@ -6,6 +6,7 @@ package com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery;
  */
 public enum BotCallbackQueryType implements CallbackQueryType {
     TEAMRESULTS,
+    SUBSCRIBE,
 
     IMPLEMENTED$TEST,
     NOT$IMPLEMENTED$

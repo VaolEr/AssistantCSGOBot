@@ -84,12 +84,9 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
             callbackQuery = update.getCallbackQuery();
         }
 
-
-
         if (callbackQuery != null && message == null) {
             log.info("New callbackQuery from User: {} with data: {}", update.getCallbackQuery().getFrom().getUserName(),
                     update.getCallbackQuery().getData());
-
 
             return prepareSendMessageAccordingToInputCallbackQueryType(update.getCallbackQuery(), chatId);
 
@@ -119,12 +116,16 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
     private SendMessage prepareSendMessageAnswerBasedOnInputMessageText(String messageText, String chatId) {
 
         SendMessage sendMessage = new SendMessage();
+        Objects.requireNonNull(messageText);
 
-        switch (Objects.requireNonNull(messageText)) {
+        String botCommand = messageText.split("_")[0];
+
+        switch (botCommand) {
 
             case ("/start"):
                 //TODO create new method name!
                 return getSendMessageAfterUserValidation(chatId);
+
             case ("/help"):
             case ("help"):
                 log.debug("Help was asked");
@@ -132,52 +133,16 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                         .chatId(chatId)
                         .text(localeMessageService.getMessage("bot.messages.help_message"))
                         .build();
-//            case ("/kbd"):
-//            case ("KBD"):
-//                log.debug("Reply keyboard was asked.");
-//                return telegramHLTVBotReplyKeyboard.sendReplyKeyBoardMessage(chatId);
-//            //break;
+
             case ("/teams"):
             case ("Teams"):
                 log.debug("Inline teams keyboard was asked.");
                 return teamsInlineKeyboard.sendInlineKeyBoardMessage(chatId);
-//            case ("/news"):
-//            case ("News"):
-//                log.debug("News are requested.");
-//
-//                List<HltvApiNews> newsList = hltvApiNewsService.getNews(); // get list of News
-//
-//                for (HltvApiNews news : newsList) {
-//                    try {
-//                        execute(hltvApiNewsService.prepareNewsMessage(message, news));
-//                    } catch (TelegramApiException e) {
-//                        log.info(e.fillInStackTrace().toString());
-//                        //TODO add return there with message for user about error???
-//                    }
-//                }
-//
-//                return SendMessage.builder()
-//                        .chatId(chatId)
-//                        .text("This is all news what I found!")
-//                        .build();
-//            case ("/results"):
-//            case ("Results"):
-//                log.debug("Results are requested.");
-//
-//                List<HltvApiResults> resultsList = hltvApiResultsService.getResults();
-//
-//                for (HltvApiResults result : resultsList) {
-//                    try {
-//                        execute(hltvApiResultsService.prepareResultsMessage(message, result));
-//                    } catch (TelegramApiException e) {
-//                        log.info(e.fillInStackTrace().toString());
-//                    }
-//                }
-//
-//                return SendMessage.builder()
-//                        .chatId(chatId)
-//                        .text("This is all what I found!")
-//                        .build();
+
+            case ("/findTeam"):
+                log.debug("Find team was called");
+                String teamName = messageText.split("_")[1];
+                return teamsInlineKeyboard.teamSubscribeInlineKeyboardOrNotFoundMessage(teamName, chatId);
 
             default:
                 sendMessage.setChatId(chatId);
@@ -246,6 +211,13 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                         .text("This is all results what I found for team " + " !")
                         .build();
 
+            case ("SUBSCRIBE"):
+                log.info("Subscribe was requested from user {} for team {}", chatId, callbackTeamName);
+                //TODO check user's teamList for subscribing team entity and add team entity if it is not exist
+                return SendMessage.builder()
+                        .chatId(chatId)
+                        .text("This feature will be added soon!!!")
+                        .build();
             default:
                 return callbackQueryParser.processCallbackQuery(callbackQuery);
         }

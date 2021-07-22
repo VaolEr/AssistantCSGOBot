@@ -28,7 +28,7 @@ public class ReplyMessageService {
 //    }
 
     public SendMessage getWarningReplyMessage(String chatId, String replyMessage) {
-        return new SendMessage(chatId, replyMessage);
+        return new SendMessage(chatId, localeMessageService.getMessage(replyMessage));
     }
 
 //    public SendMessage getWarningReplyMessage(long chatId, String replyMessage) {

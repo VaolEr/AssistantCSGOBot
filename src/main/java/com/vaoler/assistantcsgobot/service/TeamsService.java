@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import static com.vaoler.assistantcsgobot.util.TeamsUtil.getTeamFromTeamTo;
 import static com.vaoler.assistantcsgobot.util.ValidationUtil.*;
 
@@ -21,9 +23,10 @@ public class TeamsService {
                 addMessageDetails(Team.class.getSimpleName(), teamId));
     }
 
-    public Team getTeamByName(String teamName){
-        return checkNotFound(teamsRepository.getTeamByNameIsContainingIgnoreCase(teamName),
-                addMessageDetails(Team.class.getSimpleName(), teamName));
+    public Optional<Team> getTeamByName(String teamName){
+        return teamsRepository.getTeamByName(teamName);
+//        return checkNotFound(teamsRepository.getTeamByNameIsContainingIgnoreCase(teamName),
+//                addMessageDetails(Team.class.getSimpleName(), teamName));
     }
 
     @Transactional
