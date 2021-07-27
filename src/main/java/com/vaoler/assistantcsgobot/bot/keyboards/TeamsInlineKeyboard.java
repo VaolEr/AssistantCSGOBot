@@ -129,4 +129,43 @@ public class TeamsInlineKeyboard extends AbstractInlineKeyboard {
 
         return inlineKeyboardMessage;
     }
+
+    public SendMessage teamInfoInlineKeyboardMessage(String teamName, String chatId){
+        Optional<Team> team = teamsService.getTeamByName(teamName);
+        if(team.isEmpty()){
+            return SendMessage.builder()
+                    .chatId(chatId)
+                    .text("Sorry, team with this name was not found.")
+                    .build();
+        } else {
+            var inlineKeyboardMessage = new SendMessage();
+            inlineKeyboardMessage.setChatId(chatId);
+            var inlineKeyboardMarkup = new InlineKeyboardMarkup();
+
+                var buttonUnsubscribe = new InlineKeyboardButton();
+                buttonUnsubscribe.setText("Unsubscribe");
+                String callbackQuery = BotCallbackQueryType.UNSUBSCRIBE.getQueryTypeAsString() + team.get().getName();
+                buttonUnsubscribe.setCallbackData(callbackQuery);
+
+                var buttonTeamSchedule = new InlineKeyboardButton();
+                buttonTeamSchedule.setText("Schedule");
+                callbackQuery = BotCallbackQueryType.TEAMSCHEDULE.getQueryTypeAsString() + team.get().getName();
+                buttonTeamSchedule.setCallbackData(callbackQuery);
+
+            List<InlineKeyboardButton> keyboardButtonsRow1 = new ArrayList<>();
+            keyboardButtonsRow1.add(buttonUnsubscribe);
+            keyboardButtonsRow1.add(buttonTeamSchedule);
+            List<List<InlineKeyboardButton>> rowsList = new ArrayList<>();
+            rowsList.add(keyboardButtonsRow1);
+            inlineKeyboardMarkup.setKeyboard(rowsList);
+            inlineKeyboardMessage.setReplyMarkup(inlineKeyboardMarkup);
+            inlineKeyboardMessage.enableMarkdown(true);
+
+            Formatter messageText = new Formatter();
+            messageText.format("* %S *%n%n%s%n%s%n", team.get().getName(), team.get().getCountry(), team.get().getAbbreviation());
+
+            inlineKeyboardMessage.setText(String.valueOf(messageText));
+            return inlineKeyboardMessage;
+        }
+    }
 }

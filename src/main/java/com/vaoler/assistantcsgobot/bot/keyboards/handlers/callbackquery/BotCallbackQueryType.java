@@ -7,7 +7,9 @@ package com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery;
 public enum BotCallbackQueryType implements CallbackQueryType {
     TEAMRESULTS("TEAMRESULTS_"),
     SUBSCRIBE("SUBSCRIBE_"),
+    UNSUBSCRIBE("UNSUBSCRIBE_"),
     TEAMINFO("TEAMINFO_"),
+    TEAMSCHEDULE("TEAMSCHEDULE_"),
 
     IMPLEMENTED$TEST("IMPLEMENTED$TEST_"),
     NOT$IMPLEMENTED$("NOT$IMPLEMENTED$_");

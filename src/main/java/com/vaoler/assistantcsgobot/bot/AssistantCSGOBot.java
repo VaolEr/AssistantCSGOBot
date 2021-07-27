@@ -1,6 +1,7 @@
 package com.vaoler.assistantcsgobot.bot;
 
 import com.vaoler.assistantcsgobot.bot.keyboards.TeamsInlineKeyboard;
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.BotCallbackQueryType;
 import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.CallbackQueryParser;
 import com.vaoler.assistantcsgobot.model.bot.Team;
 import com.vaoler.assistantcsgobot.model.bot.User;
@@ -287,6 +288,10 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                         .chatId(chatId)
                         .text("You are successfully subscribed to " + callbackTeamName + " !")
                         .build();
+            case("TEAMINFO"):
+                log.info("Team info was requested from user {} for team {}", chatId, callbackTeamName);
+                return teamsInlineKeyboard.teamInfoInlineKeyboardMessage(callbackTeamName, chatId);
+
             default:
                 return callbackQueryParser.processCallbackQuery(callbackQuery);
         }
