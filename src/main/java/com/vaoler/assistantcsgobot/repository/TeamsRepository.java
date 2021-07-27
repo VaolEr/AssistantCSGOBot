@@ -16,4 +16,5 @@ public interface TeamsRepository extends JpaRepository<Team, Integer> {
     Optional<Team> getTeamByNameIsContainingIgnoreCase(String teamName);
 
     Optional<Team> getTeamByName(String teamName);
+
 }
