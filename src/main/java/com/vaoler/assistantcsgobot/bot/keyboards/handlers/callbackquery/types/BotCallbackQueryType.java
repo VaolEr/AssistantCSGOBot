@@ -1,4 +1,4 @@
-package com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery;
+package com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.types;
 
 /**
  * Callback Query types

@@ -5,10 +5,7 @@ import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.Callback
 import com.vaoler.assistantcsgobot.model.bot.Team;
 import com.vaoler.assistantcsgobot.model.bot.User;
 import com.vaoler.assistantcsgobot.model.bot.UserTeam;
-import com.vaoler.assistantcsgobot.service.LocaleMessageService;
-import com.vaoler.assistantcsgobot.service.TeamsService;
-import com.vaoler.assistantcsgobot.service.UsersService;
-import com.vaoler.assistantcsgobot.service.UsersTeamsService;
+import com.vaoler.assistantcsgobot.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +16,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -34,8 +30,6 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
 
     private final LocaleMessageService localeMessageService;
     private final UsersService usersService;
-    private final UsersTeamsService usersTeamsService;
-    private final TeamsService teamsService;
     private final CallbackQueryParser callbackQueryParser;
     private final TeamsInlineKeyboard teamsInlineKeyboard;
 
@@ -90,7 +84,7 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
             log.info("New callbackQuery from User: {} with data: {}", update.getCallbackQuery().getFrom().getUserName(),
                     update.getCallbackQuery().getData());
 
-            return prepareSendMessageAccordingToInputCallbackQueryType(update.getCallbackQuery(), chatId);
+            return callbackQueryParser.processCallbackQuery(update.getCallbackQuery());
 
         } else {
 
@@ -194,139 +188,6 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                 .build();
     }
 
-    private SendMessage prepareSendMessageAccordingToInputCallbackQueryType(CallbackQuery callbackQuery, String chatId) {
-
-        String callbackQueryType = callbackQuery.getData().split("_")[0];
-        //TODO add check for single word callback_queries!
-        String callbackTeamName;
-        try {
-            callbackTeamName = callbackQuery.getData().split("_")[1];
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            callbackTeamName = "";
-        }
-
-        switch (callbackQueryType) {
-            case ("TEAMRESULTS"):
-                log.info("{} Results are requested.", callbackTeamName);
-                List<SendMessage> messages = callbackQueryParser.processCallbackQueryMultiAnswer(callbackQuery);
-
-                boolean allMessagesAreEmpty = true;
-
-                for (SendMessage sendMessage1 : messages) {
-                    try {
-                        if (!sendMessage1.getText().equals(emptySendMessageText)) {
-                            allMessagesAreEmpty = false;
-                            execute(sendMessage1);
-                        }
-                    } catch (TelegramApiException | NullPointerException e) {
-                        log.info(e.fillInStackTrace().toString());
-                    }
-                }
-
-                if (allMessagesAreEmpty) {
-                    return SendMessage.builder()
-                            .chatId(chatId)
-                            .text(noResultsForTeamSendMessageText)
-                            .build();
-                }
-
-                return SendMessage.builder()
-                        .chatId(chatId)
-                        .text("This is all results what I found for team " + " !")
-                        .build();
-
-            case ("SUBSCRIBE"):
-                //TODO extract as method? To service? To util? Local?
-                log.info("Subscribe was requested from user {} for team {}", chatId, callbackTeamName);
-                Optional<User> oUser = usersService.getUserByTelegramChatId(Long.parseLong(chatId));
-                User user;
-                Team team;
-                if (oUser.isPresent()) {
-                    user = oUser.get();
-                    Optional<Team> oTeam = teamsService.getTeamByName(callbackTeamName);
-
-                    if (oTeam.isPresent()) {
-                        team = oTeam.get();
-                        var userTeams = user.getUserTeams();
-                        for (UserTeam userTeam : userTeams) {
-                            // Check for existing subscription to team
-                            if (userTeam.getTeam().getName().contains(callbackTeamName)) {
-                                return SendMessage.builder()
-                                        .chatId(chatId)
-                                        .text("You are already subscribed to " + callbackTeamName + " team!!!")
-                                        .build();
-                            }
-                        }
-
-                        UserTeam userTeam = new UserTeam();
-                        userTeam.setTeam(team);
-                        userTeam.setUser(user);
-                        userTeams.add(userTeam);
-                        user.setUserTeams(userTeams);
-                        usersService.update(user);
-
-                    } else {
-                        //TODO change messages to lacaled messages
-                        log.info("Team " + callbackTeamName + " is not present!");
-                        return SendMessage.builder()
-                                .chatId(chatId)
-                                .text("Something goes wrong! Connect to admin and describe problem!")
-                                .build();
-                    }
-
-                } else {
-                    log.info("User " + chatId + " is not present!");
-                    return SendMessage.builder()
-                            .chatId(chatId)
-                            .text("Something goes wrong! Connect to admin and describe problem!")
-                            .build();
-                }
-                return SendMessage.builder()
-                        .chatId(chatId)
-                        .text("You are successfully subscribed to " + callbackTeamName + " !")
-                        .build();
-            case ("UNSUBSCRIBE"):
-                //TODO extract as method? To service? To util? Local?
-                log.info("Unsubscribe was requested from user {} for team {}", chatId, callbackTeamName);
-                Optional<User> oCurrentUser = usersService.getUserByTelegramChatId(Long.parseLong(chatId));
-                User currentUser;
-                if (oCurrentUser.isPresent()) {
-                    currentUser = oCurrentUser.get();
-                    var userTeams = currentUser.getUserTeams();
-                    String finalCallbackTeamName = callbackTeamName;
-                    userTeams.removeIf(userTeam -> userTeam.getTeam().getName().contains(finalCallbackTeamName));
-                    currentUser.setUserTeams(userTeams);
-                    usersService.update(currentUser);
-                    Optional<Team> oTeam = teamsService.getTeamByName(callbackTeamName);
-                    if(oTeam.isPresent()) {
-                        Team currentTeam = oTeam.get();
-                        usersTeamsService.unsubscribeUserFromTeam(currentUser, currentTeam);
-                        return SendMessage.builder()
-                                .chatId(chatId)
-                                .text("You are successfully unsubscribed from " + callbackTeamName + " team!!!")
-                                .build();
-                    } else{
-                        return SendMessage.builder()
-                                .chatId(chatId)
-                                .text(localeMessageService.getMessage("bot.message.callback.UNSUBSCRIBE.team_not_present"))
-                                .build();
-                    }
-                } else {
-                    return SendMessage.builder()
-                            .chatId(chatId)
-                            .text(localeMessageService.getMessage("bot.message.callback.UNSUBSCRIBE.user_not_present"))
-                            .build();
-                }
-
-            case ("TEAMINFO"):
-                log.info("Team info was requested from user {} for team {}", chatId, callbackTeamName);
-                return teamsInlineKeyboard.teamInfoInlineKeyboardMessage(callbackTeamName, chatId);
-
-            default:
-                return callbackQueryParser.processCallbackQuery(callbackQuery);
-        }
-    }
 
     @Override
     public String getBotPath() {

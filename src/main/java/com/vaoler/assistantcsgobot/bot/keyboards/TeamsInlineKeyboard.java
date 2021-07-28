@@ -1,7 +1,7 @@
 package com.vaoler.assistantcsgobot.bot.keyboards;
 
 import com.vaoler.assistantcsgobot.bot.keyboards.abstractkeyboards.AbstractInlineKeyboard;
-import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.BotCallbackQueryType;
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.types.BotCallbackQueryType;
 import com.vaoler.assistantcsgobot.model.bot.Team;
 import com.vaoler.assistantcsgobot.service.LocaleMessageService;
 import com.vaoler.assistantcsgobot.service.TeamsService;

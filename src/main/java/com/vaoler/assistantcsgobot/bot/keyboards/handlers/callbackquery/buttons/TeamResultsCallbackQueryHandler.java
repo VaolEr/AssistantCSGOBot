@@ -1,8 +1,8 @@
 package com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.buttons;
 
-import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.BotCallbackQueryType;
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.types.BotCallbackQueryType;
 import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.CallbackQueryHandler;
-import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.CallbackQueryType;
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.types.CallbackQueryType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.surefire.shared.lang3.NotImplementedException;

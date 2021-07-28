@@ -1,5 +1,7 @@
 package com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery;
 
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.types.BotCallbackQueryType;
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.types.CallbackQueryType;
 import com.vaoler.assistantcsgobot.service.ReplyMessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +32,7 @@ public class CallbackQueryParser {
         CallbackQueryType usersQueryType;
 
         try {
-            usersQueryType = BotCallbackQueryType.valueOf(usersQuery.getData().split("\\|")[0]);
+            usersQueryType = BotCallbackQueryType.valueOf(usersQuery.getData().split("_")[0]);
         } catch (IllegalArgumentException e){
             log.info(e.getMessage());
             usersQueryType = BotCallbackQueryType.valueOf("NOT$IMPLEMENTED$");
