@@ -1,12 +1,10 @@
 package com.vaoler.assistantcsgobot.bot;
 
 import com.vaoler.assistantcsgobot.bot.keyboards.TeamsInlineKeyboard;
-import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.BotCallbackQueryType;
 import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.CallbackQueryParser;
 import com.vaoler.assistantcsgobot.model.bot.Team;
 import com.vaoler.assistantcsgobot.model.bot.User;
 import com.vaoler.assistantcsgobot.model.bot.UserTeam;
-import com.vaoler.assistantcsgobot.repository.TeamsRepository;
 import com.vaoler.assistantcsgobot.service.LocaleMessageService;
 import com.vaoler.assistantcsgobot.service.TeamsService;
 import com.vaoler.assistantcsgobot.service.UsersService;
@@ -36,6 +34,7 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
 
     private final LocaleMessageService localeMessageService;
     private final UsersService usersService;
+    private final UsersTeamsService usersTeamsService;
     private final TeamsService teamsService;
     private final CallbackQueryParser callbackQueryParser;
     private final TeamsInlineKeyboard teamsInlineKeyboard;
@@ -153,17 +152,17 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                 User user;
                 List<UserTeam> userTeams;
                 List<Team> teams;
-                if(oUser.isPresent()) {
+                if (oUser.isPresent()) {
                     user = oUser.get();
                     userTeams = user.getUserTeams();
-                    if(userTeams.isEmpty()){
+                    if (userTeams.isEmpty()) {
                         return SendMessage.builder()
                                 .chatId(chatId)
                                 .text(localeMessageService.getMessage("bot.messages.mySubs_emptySubsListMessage"))
                                 .build();
                     }
                     teams = userTeams.stream().map(UserTeam::getTeam).collect(Collectors.toList());
-                    return teamsInlineKeyboard.getSubscribedTeamsInlineKeyBoard(chatId, teams);
+                    return teamsInlineKeyboard.subscribedTeamsInlineKeyBoardMessage(chatId, teams);
                 }
                 return SendMessage.builder()
                         .chatId(chatId)
@@ -179,7 +178,7 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
 
     private SendMessage getSendMessageAfterUserValidation(String chatId) {
         Optional<User> botUser = usersService.getUserByTelegramChatId(Long.parseLong(chatId));
-        if(botUser.isEmpty()){
+        if (botUser.isEmpty()) {
             User newUser = new User();
             newUser.setTelegramChatId(Long.parseLong(chatId));
             usersService.create(newUser);
@@ -243,17 +242,16 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                 Optional<User> oUser = usersService.getUserByTelegramChatId(Long.parseLong(chatId));
                 User user;
                 Team team;
-                if(oUser.isPresent()){
+                if (oUser.isPresent()) {
                     user = oUser.get();
                     Optional<Team> oTeam = teamsService.getTeamByName(callbackTeamName);
 
-                    if(oTeam.isPresent())
-                    {
+                    if (oTeam.isPresent()) {
                         team = oTeam.get();
                         var userTeams = user.getUserTeams();
-                        for(UserTeam userTeam: userTeams){
+                        for (UserTeam userTeam : userTeams) {
                             // Check for existing subscription to team
-                            if(userTeam.getTeam().getName().contains(callbackTeamName)){
+                            if (userTeam.getTeam().getName().contains(callbackTeamName)) {
                                 return SendMessage.builder()
                                         .chatId(chatId)
                                         .text("You are already subscribed to " + callbackTeamName + " team!!!")
@@ -268,7 +266,7 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                         user.setUserTeams(userTeams);
                         usersService.update(user);
 
-                    } else{
+                    } else {
                         //TODO change messages to lacaled messages
                         log.info("Team " + callbackTeamName + " is not present!");
                         return SendMessage.builder()
@@ -277,7 +275,7 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                                 .build();
                     }
 
-                } else{
+                } else {
                     log.info("User " + chatId + " is not present!");
                     return SendMessage.builder()
                             .chatId(chatId)
@@ -288,7 +286,40 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                         .chatId(chatId)
                         .text("You are successfully subscribed to " + callbackTeamName + " !")
                         .build();
-            case("TEAMINFO"):
+            case ("UNSUBSCRIBE"):
+                //TODO extract as method? To service? To util? Local?
+                log.info("Unsubscribe was requested from user {} for team {}", chatId, callbackTeamName);
+                Optional<User> oCurrentUser = usersService.getUserByTelegramChatId(Long.parseLong(chatId));
+                User currentUser;
+                if (oCurrentUser.isPresent()) {
+                    currentUser = oCurrentUser.get();
+                    var userTeams = currentUser.getUserTeams();
+                    String finalCallbackTeamName = callbackTeamName;
+                    userTeams.removeIf(userTeam -> userTeam.getTeam().getName().contains(finalCallbackTeamName));
+                    currentUser.setUserTeams(userTeams);
+                    usersService.update(currentUser);
+                    Optional<Team> oTeam = teamsService.getTeamByName(callbackTeamName);
+                    if(oTeam.isPresent()) {
+                        Team currentTeam = oTeam.get();
+                        usersTeamsService.unsubscribeUserFromTeam(currentUser, currentTeam);
+                        return SendMessage.builder()
+                                .chatId(chatId)
+                                .text("You are successfully unsubscribed from " + callbackTeamName + " team!!!")
+                                .build();
+                    } else{
+                        return SendMessage.builder()
+                                .chatId(chatId)
+                                .text(localeMessageService.getMessage("bot.message.callback.UNSUBSCRIBE.team_not_present"))
+                                .build();
+                    }
+                } else {
+                    return SendMessage.builder()
+                            .chatId(chatId)
+                            .text(localeMessageService.getMessage("bot.message.callback.UNSUBSCRIBE.user_not_present"))
+                            .build();
+                }
+
+            case ("TEAMINFO"):
                 log.info("Team info was requested from user {} for team {}", chatId, callbackTeamName);
                 return teamsInlineKeyboard.teamInfoInlineKeyboardMessage(callbackTeamName, chatId);
 

@@ -1,5 +1,6 @@
 package com.vaoler.assistantcsgobot.service;
 
+import com.vaoler.assistantcsgobot.model.bot.Team;
 import com.vaoler.assistantcsgobot.model.bot.User;
 import com.vaoler.assistantcsgobot.model.bot.UserTeam;
 import com.vaoler.assistantcsgobot.repository.UsersTeamsRepository;
@@ -20,4 +21,8 @@ public class UsersTeamsService {
         return usersTeamsRepository.save(newUserTeam);
     }
 
+    @Transactional
+    public void unsubscribeUserFromTeam(User user, Team team){
+        usersTeamsRepository.deleteUserTeamByTeamIdAndUserId(team.getId(), user.getId());
+    }
 }

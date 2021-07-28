@@ -88,7 +88,7 @@ public class TeamsInlineKeyboard extends AbstractInlineKeyboard {
         }
     }
 
-    public SendMessage getSubscribedTeamsInlineKeyBoard(String chatId, List<Team> userTeams){
+    public SendMessage subscribedTeamsInlineKeyBoardMessage(String chatId, List<Team> userTeams){
         var inlineKeyboardMessage = new SendMessage();
         inlineKeyboardMessage.setChatId(chatId);
         var inlineKeyboardMarkup = new InlineKeyboardMarkup();
@@ -117,7 +117,7 @@ public class TeamsInlineKeyboard extends AbstractInlineKeyboard {
                 keyboardButtonsRow = new ArrayList<>();
             }
             keyboardButtonsRow.add(teamButtons.get(i));
-            if(i == teamButtons.size() - 1 && i % 2 != 0){
+            if(i == teamButtons.size() - 1){
                 rowsList.add(keyboardButtonsRow);
             }
         }
