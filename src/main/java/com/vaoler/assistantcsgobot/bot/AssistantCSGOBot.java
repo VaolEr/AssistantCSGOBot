@@ -1,10 +1,7 @@
 package com.vaoler.assistantcsgobot.bot;
 
-import com.vaoler.assistantcsgobot.bot.keyboards.TeamsInlineKeyboard;
 import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.CallbackQueryParser;
-import com.vaoler.assistantcsgobot.model.bot.Team;
-import com.vaoler.assistantcsgobot.model.bot.User;
-import com.vaoler.assistantcsgobot.model.bot.UserTeam;
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.inputmessage.InputMessageCommandParser;
 import com.vaoler.assistantcsgobot.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +18,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -29,10 +25,8 @@ import java.util.stream.Collectors;
 public class AssistantCSGOBot extends TelegramWebhookBot {
 
     private final LocaleMessageService localeMessageService;
-    private final UsersService usersService;
     private final CallbackQueryParser callbackQueryParser;
-    private final TeamsInlineKeyboard teamsInlineKeyboard;
-
+    private final InputMessageCommandParser inputMessageCommandParser;
 
     // This is telegram bot Username
     @Value("${app.bots.usernames.assistant-csgo-telegram-bot-Username}")
@@ -44,12 +38,6 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
 
     @Value("${api.bots.webhookPaths.assistant-csgo-telegram-bot-Path}")
     private String botPath;
-
-    @Value("${app.sendMessage.empty}")
-    private String emptySendMessageText;
-
-    @Value("${app.sendMessage.NoResultsForTeam}")
-    private String noResultsForTeamSendMessageText;
 
     @Override
     public String getBotUsername() {
@@ -105,89 +93,17 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
                     messageDateTime,
                     messageText);
 
-            return prepareSendMessageAnswerBasedOnInputMessageText(messageText, chatId);
-        }
-    }
-
-    private SendMessage prepareSendMessageAnswerBasedOnInputMessageText(String messageText, String chatId) {
-
-        SendMessage sendMessage = new SendMessage();
-        Objects.requireNonNull(messageText);
-
-        String botCommand = messageText.split("_")[0];
-
-        switch (botCommand) {
-
-            case ("/start"):
-                //TODO create new method name!
-                return getSendMessageAfterUserValidation(chatId);
-
-            case ("/help"):
-            case ("help"):
-                log.debug("Help was asked");
+            if(messageText.startsWith("/")) {
+                return inputMessageCommandParser.processInputMessageCommand(message);
+            } else
+            {
                 return SendMessage.builder()
                         .chatId(chatId)
-                        .text(localeMessageService.getMessage("bot.messages.help_message"))
+                        .text(localeMessageService.getMessage("bot.commands.non_slash_message"))
                         .build();
-
-            case ("/teams"):
-            case ("teams"):
-                log.debug("Inline teams keyboard was asked.");
-                return teamsInlineKeyboard.sendInlineKeyBoardMessage(chatId);
-
-            case ("/findTeam"):
-                log.debug("Find team was called");
-                String teamName = messageText.split("_")[1];
-                return teamsInlineKeyboard.teamSubscribeInlineKeyboardOrNotFoundMessage(teamName, chatId);
-
-            case ("/mySubs"):
-                log.debug("My subscriptions was asked");
-                Optional<User> oUser = usersService.getUserByTelegramChatId(Long.parseLong(chatId));
-                User user;
-                List<UserTeam> userTeams;
-                List<Team> teams;
-                if (oUser.isPresent()) {
-                    user = oUser.get();
-                    userTeams = user.getUserTeams();
-                    if (userTeams.isEmpty()) {
-                        return SendMessage.builder()
-                                .chatId(chatId)
-                                .text(localeMessageService.getMessage("bot.messages.mySubs_emptySubsListMessage"))
-                                .build();
-                    }
-                    teams = userTeams.stream().map(UserTeam::getTeam).collect(Collectors.toList());
-                    return teamsInlineKeyboard.subscribedTeamsInlineKeyBoardMessage(chatId, teams);
-                }
-                return SendMessage.builder()
-                        .chatId(chatId)
-                        .text(localeMessageService.getMessage("There will be teams on which you are subscribed"))
-                        .build();
-
-            default:
-                sendMessage.setChatId(chatId);
-                sendMessage.setText(localeMessageService.getMessage("bot.commands.unknown_command"));
-                return sendMessage;
+            }
         }
     }
-
-    private SendMessage getSendMessageAfterUserValidation(String chatId) {
-        Optional<User> botUser = usersService.getUserByTelegramChatId(Long.parseLong(chatId));
-        if (botUser.isEmpty()) {
-            User newUser = new User();
-            newUser.setTelegramChatId(Long.parseLong(chatId));
-            usersService.create(newUser);
-            log.info("New bot user was created!");
-            return SendMessage.builder()
-                    .chatId(chatId)
-                    .text(localeMessageService.getMessage("bot.messages.start_command_message_new_user"))
-                    .build();
-        }
-        return SendMessage.builder()
-                .chatId(chatId)
-                .text(localeMessageService.getMessage("bot.messages.start_command_message_old_user"))
-                .build();
-    }
-
 
     @Override
     public String getBotPath() {
