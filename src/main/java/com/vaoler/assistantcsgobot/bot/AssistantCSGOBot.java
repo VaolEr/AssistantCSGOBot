@@ -1,5 +1,8 @@
 package com.vaoler.assistantcsgobot.bot;
 
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.callbackquery.CallbackQueryParser;
+import com.vaoler.assistantcsgobot.bot.keyboards.handlers.inputmessage.InputMessageCommandParser;
+import com.vaoler.assistantcsgobot.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,14 +17,16 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
+import java.util.*;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AssistantCSGOBot extends TelegramWebhookBot {
 
-    //private final AbiosAuthenticationService abiosAuthenticationService;
+    private final LocaleMessageService localeMessageService;
+    private final CallbackQueryParser callbackQueryParser;
+    private final InputMessageCommandParser inputMessageCommandParser;
 
     // This is telegram bot Username
     @Value("${app.bots.usernames.assistant-csgo-telegram-bot-Username}")
@@ -63,28 +68,41 @@ public class AssistantCSGOBot extends TelegramWebhookBot {
             callbackQuery = update.getCallbackQuery();
         }
 
-        SendMessage sendMessage = new SendMessage();
+        if (callbackQuery != null && message == null) {
+            log.info("New callbackQuery from User: {} with data: {}", update.getCallbackQuery().getFrom().getUserName(),
+                    update.getCallbackQuery().getData());
 
-        String userName;
-        boolean isBot;
-        String messageDateTime;
-        String messageText;
+            return callbackQueryParser.processCallbackQuery(update.getCallbackQuery());
 
-        userName = message.getFrom().getUserName();
-        isBot = message.getFrom().getIsBot();
-        messageDateTime = LocalDateTime.ofEpochSecond(message.getDate(), 0, ZoneOffset.ofHours(3)).format(dateTimeFormatter);
-        messageText = message.getText();
+        } else {
 
-        log.info("New message from User: {}, isBot: {}, chatId: {}, date: {}, with text: {}",
-                userName,
-                isBot,
-                chatId,
-                messageDateTime,
-                messageText);
+            String userName;
+            boolean isBot;
+            String messageDateTime;
+            String messageText;
 
-        sendMessage.setChatId(chatId);
-        sendMessage.setText("Bot is still like a 4 years ol child. Be passions, please.");
-        return sendMessage;
+            userName = message.getFrom().getUserName();
+            isBot = message.getFrom().getIsBot();
+            messageDateTime = LocalDateTime.ofEpochSecond(message.getDate(), 0, ZoneOffset.ofHours(3)).format(dateTimeFormatter);
+            messageText = message.getText();
+
+            log.info("New message from User: {}, isBot: {}, chatId: {}, date: {}, with text: {}",
+                    userName,
+                    isBot,
+                    chatId,
+                    messageDateTime,
+                    messageText);
+
+            if(messageText.startsWith("/")) {
+                return inputMessageCommandParser.processInputMessageCommand(message);
+            } else
+            {
+                return SendMessage.builder()
+                        .chatId(chatId)
+                        .text(localeMessageService.getMessage("bot.commands.non_slash_message"))
+                        .build();
+            }
+        }
     }
 
     @Override
