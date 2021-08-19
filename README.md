@@ -2,7 +2,7 @@
 [![codecov](https://codecov.io/gh/VaolEr/AssistantCSGOBot/branch/master/graph/badge.svg?token=sPv7X83iov)](https://codecov.io/gh/VaolEr/AssistantCSGOBot)
 ## AssistantCSGOBot
 
-This project is based on [Abios ESPORTS API](https://abiosgaming.com/) - the best api with the most detailed data and broadest coverage of matches!
+This project is based on [SPORTRADAR API](https://www.sportradar.com/) - the best api with the most detailed data and broadest coverage of matches!
 
 As for me - it is a pet project for practice Spring, PostgresQL, communication with other APIs, Telegram Bot practice and improving my skills in Java.
 
